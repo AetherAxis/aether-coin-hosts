@@ -1,0 +1,19 @@
+<Project>
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- 本仓的还原图只到 ① aether-ledger（BouncyCastle）+ ④ Aether.Exchange.Rpc（零包引用），
+         没有 ⑥ Lean 那条 2018 老包的传递链——所以不需要 ⑧ 那份传递钉。 -->
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- 节点宿主（AddWindowsService 需要 Hosting.WindowsServices） -->
+    <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.13" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.13" />
+
+    <!-- 测试 -->
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+    <PackageVersion Include="coverlet.collector" Version="10.1.0" />
+  </ItemGroup>
+</Project>
