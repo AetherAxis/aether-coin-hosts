@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+	<!-- 钱包是纯客户端：只需要连节点的出网权限，没有其它系统能力 -->
+	<uses-permission android:name="android.permission.INTERNET" />
+	<application android:label="Aether 钱包" android:icon="@drawable/Icon" />
+</manifest>

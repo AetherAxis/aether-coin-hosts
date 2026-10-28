@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Android head（2026-10-28 骨架）：TFM + 依赖接线，直接复用 App 的同一份 View/VM。
+       ⚠ 种子存储仍是 MissingSeedStore（Keychain/Keystore 未接入）——打开会明确提示，不会写明文。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-android</TargetFramework>
+    <SupportedOSPlatformVersion>23</SupportedOSPlatformVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Aether.Ledger.Wallet.Android</RootNamespace>
+    <AssemblyName>Aether.Ledger.Wallet.Android</AssemblyName>
+    <ApplicationId>org.aetheraxis.wallet</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+    <AndroidPackageFormat>apk</AndroidPackageFormat>
+    <AndroidEnableProfiledAot>false</AndroidEnableProfiledAot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AndroidResource Include="Icon.png">
+      <Link>Resources\drawable\Icon.png</Link>
+    </AndroidResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Android" />
+    <PackageReference Include="Xamarin.AndroidX.Core.SplashScreen" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Ledger.Wallet.App\Aether.Ledger.Wallet.App.csproj" />
+  </ItemGroup>
+
+</Project>

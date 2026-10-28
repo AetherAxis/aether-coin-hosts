@@ -5,5 +5,11 @@
   <Project Path="Aether.Ledger.Node/Aether.Ledger.Node.csproj" />
   <Project Path="Aether.Ledger.Wallet/Aether.Ledger.Wallet.csproj" />
   <Project Path="Aether.Ledger.Verify/Aether.Ledger.Verify.csproj" />
+  <!-- 钱包 UI（2026-10-28）：共享 View/VM + 三个 head。移动 head 进解决方案只为 IDE 可见——
+       CI 在 ubuntu 上只构建 Node/Wallet/Verify/Desktop（见 ci.yml），不碰 android/ios TFM。 -->
+  <Project Path="Aether.Ledger.Wallet.App/Aether.Ledger.Wallet.App.csproj" />
+  <Project Path="Aether.Ledger.Wallet.Desktop/Aether.Ledger.Wallet.Desktop.csproj" />
+  <Project Path="Aether.Ledger.Wallet.Android/Aether.Ledger.Wallet.Android.csproj" />
+  <Project Path="Aether.Ledger.Wallet.iOS/Aether.Ledger.Wallet.iOS.csproj" />
   <Project Path="tests/Aether.Ledger.Wallet.Tests/Aether.Ledger.Wallet.Tests.csproj" />
 </Solution>

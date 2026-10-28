@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 钱包 UI 的共享层（2026-10-28）：同一份 View/VM 供桌面 / Android / iOS 三个 head 使用，
+       形态照抄 ⑮ aether-ai-app 的方案A（共享 net10.0 库 + 平台 head）。
+       定位 = **第二个客户端**，与 Aether.Ledger.Wallet（CLI）完全平级：
+       走同一条节点 RPC、持自己的种子、自己签名，节点不知道它存在。
+       引擎是 ① aether-ledger（纯库），本仓不实现任何链逻辑。
+       不引 ⑩ aether-workbench：钱包 UI 是单页工具，先不背布局引擎（需要统一外观时再加）。 -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- 反射绑定（与 ⑪⑮ 同款）；改 compiled bindings 是一次单独的重构 -->
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+    <RootNamespace>Aether.Ledger.Wallet.App</RootNamespace>
+    <AssemblyName>Aether.Ledger.Wallet.App</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 引擎（账本客户端 + 钱包 + 交易签名）——与 CLI 引的是同一个项目 -->
+    <ProjectReference Include="..\..\aether-ledger\src\Aether.Ledger\Aether.Ledger.csproj" />
+  </ItemGroup>
+
+</Project>

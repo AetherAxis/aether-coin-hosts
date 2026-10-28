@@ -28,6 +28,7 @@ custody 托管地址（种子 = 交易所托管责任）
 | 链节点 Running（:17805） | `wallet info`（高度正常推进） |
 | 交易所桥已启用 | 交易所日志有 `[LEDGER-BRIDGE] 交易所桥就绪`——宿主 env 已设 `AETHER_LEDGER_CUSTODY_SEED`（**不设 = 桥不启动，充值无处归账**） |
 | treasury 种子已离线备份 | 新链生成时打印在节点日志（纪律见 ① runbook） |
+| **producer 种子已写进服务 env** | `(Get-ItemProperty 'HKLM:\SYSTEM\CurrentControlSet\Services\AetherLedgerNode').Environment` 里有 `AETHER_LEDGER_PRODUCER_SEED=`——**缺它 = 节点每次重启都进崩溃循环**（`ledger-setup-server.ps1 -ProducerSeed <hex>` 或手写注册表） |
 | custody 地址已知 | `wallet balance --seed <custody种子>` 输出的地址 |
 
 **钱包 CLI**（`new` / `info` / `balance` / `transfer` / `deposit` / `withdraw`）：
@@ -90,7 +91,7 @@ dotnet run --project ~/Desktop/AetherAxis/aether-ctp-hosts/Aether.CtpConsole -- 
 
 | 场景 | 行为 |
 |---|---|
-| 重启链节点 | 桥轮询自动重连——交易所不用动 |
+| 重启链节点 | 桥轮询自动重连——交易所不用动。⚠ 前提是服务 env 里有 `AETHER_LEDGER_PRODUCER_SEED`（链文件只存公钥）；缺它则节点崩在「重启已有链须设…」，`restart/5000` 会把它变成无限崩溃循环，交易所侧只看到链断 |
 | 重启交易所 | 桥全量重扫链重建 AQ IOU（链是唯一真相）；未成交挂单作废、铸造台账续用 |
 | 充值后交易所崩溃 | 无损——IOU 从链重扫推导，对账自动补上 |
 | 提现的崩溃窗口（扣现后链未确认） | 下一轮对账把现金补回（差额自愈） |

@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Aether.Ledger.Wallet.App.Views.MainView">
+    <!-- 钱包主界面：三端共用这一份。桌面/手机只是宿主不同，字段与命令完全一致。
+         布局刻意做成「从上到下一条流」，横向空间富余也不分栏——手机上不用第二套 XAML。 -->
+    <ScrollViewer Padding="20">
+        <StackPanel Spacing="14" MaxWidth="760" HorizontalAlignment="Left">
+
+            <TextBlock Text="Aether 钱包" FontSize="24" FontWeight="SemiBold" />
+            <TextBlock Text="{Binding SeedNote}" Opacity="0.75" TextWrapping="Wrap" />
+
+            <!-- 连接 -->
+            <Border BorderBrush="#33000000" BorderThickness="1" CornerRadius="8" Padding="14">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="链节点" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding NodeAddress}" PlaceholderText="host:port，例如 127.0.0.1:17805" />
+                    <TextBlock Text="{Binding ChainText}" Opacity="0.8" TextWrapping="Wrap" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="保存设置" Command="{Binding SaveSettingsCommand}" />
+                        <Button Content="刷新" Command="{Binding RefreshCommand}" />
+                        <TextBlock Text="{Binding IsBusy, StringFormat='忙：{0}'}" Opacity="0.6" VerticalAlignment="Center" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- 钱包 -->
+            <Border BorderBrush="#33000000" BorderThickness="1" CornerRadius="8" Padding="14">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="钱包" FontWeight="SemiBold" />
+                    <TextBlock Text="{Binding Address}" FontFamily="monospace" TextWrapping="Wrap" />
+                    <TextBlock Text="{Binding BalanceText}" TextWrapping="Wrap" />
+                    <TextBox Text="{Binding ImportSeed}" PasswordChar="•"
+                             PlaceholderText="粘贴已有种子（hex）——导入后立刻从界面清除"
+                             IsEnabled="{Binding CanUseSeed}" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Content="新建钱包" Command="{Binding CreateWalletCommand}" IsEnabled="{Binding CanUseSeed}" />
+                        <Button Content="导入种子" Command="{Binding ImportWalletCommand}" IsEnabled="{Binding CanUseSeed}" />
+                    </StackPanel>
+                    <TextBlock Text="种子 = 全部财富，离线备份；节点不知道你是谁，也不会替你保管私钥。"
+                               Opacity="0.6" TextWrapping="Wrap" FontSize="12" />
+                </StackPanel>
+            </Border>
+
+            <!-- 转账 -->
+            <Border BorderBrush="#33000000" BorderThickness="1" CornerRadius="8" Padding="14">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="转账（币）" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding Destination}" PlaceholderText="收款地址（40 位 hex）" />
+                    <TextBox Text="{Binding Amount}" PlaceholderText="金额，例如 1.5" />
+                    <TextBox Text="{Binding Memo}" PlaceholderText="备注（可空）" />
+                    <Button Content="签名并提交" Command="{Binding TransferCommand}" HorizontalAlignment="Left" />
+                </StackPanel>
+            </Border>
+
+            <!-- 交易所（充值参数先留着，入金动作下一批接） -->
+            <Border BorderBrush="#33000000" BorderThickness="1" CornerRadius="8" Padding="14">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="交易所（下一批：充值 / 提现）" FontWeight="SemiBold" />
+                    <TextBox Text="{Binding CustodyAddress}" PlaceholderText="托管地址 custody（充值目标）" />
+                    <TextBox Text="{Binding ExchangeAccount}" PlaceholderText="交易所账户标识（充值 memo）" />
+                    <TextBlock Text="充值 = 链上转给托管地址 + memo 填账户；提现走交易所 RPC 另需登录凭据。"
+                               Opacity="0.6" TextWrapping="Wrap" FontSize="12" />
+                </StackPanel>
+            </Border>
+
+            <!-- 日志 -->
+            <Border BorderBrush="#33000000" BorderThickness="1" CornerRadius="8" Padding="14">
+                <StackPanel Spacing="6">
+                    <TextBlock Text="操作记录" FontWeight="SemiBold" />
+                    <ItemsControl ItemsSource="{Binding Log}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" FontFamily="monospace" FontSize="12" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -51,20 +51,51 @@
 monorepo 版是 top-level 语句，测不了。迁仓是「换依赖接线」的动作，最容易错的是异常类型与登录载荷——
 只有让 `RunAsync(args, TextWriter)` 能在同进程被调用，才能起一个真节点跑真 CLI。10 例回归就是这么来的。
 
+### 4.4 钱包 UI：一个核三个头，种子能力是头决定的（2026-10-28）
+
+```
+        Wallet.App（View + VM + WalletService，零平台 API）
+        ├─ Wallet.Desktop   Avalonia 桌面窗口（WinExe）+ --selftest
+        ├─ Wallet.Android   net10.0-android，TFM/接线就位
+        └─ Wallet.iOS       net10.0-ios，TFM/接线就位
+```
+
+三条约束，都是「宁可功能少，也不做错」：
+
+- **VM 不引用任何平台 API**：`Aether.Ledger.Wallet.App` 只引 ①，view 层是同一份 XAML。手机上不用第二套界面——
+  布局是「一条竖流」（`ScrollViewer` + `MaxWidth`），窄屏不挤、宽屏不散。
+- **种子不是 VM 的事**：全部经 `ISeedStore`（`HasSeed` / `Describe` / `ReadAsync` / `WriteAsync`）。桌面 head 注入
+  `FileSeedStore`（明文 + `0600`），移动 head 注入 `MissingSeedStore`——`WriteAsync` 抛 `NotSupportedException`，
+  VM 统一捕获并把界面切成「种子存储未接入」。**手机端在 Keychain / Keystore 落地前不碰真钱**，
+  这比「先写个明文文件占位、以后再换」安全得多：占位方案会真的被用来存钱。
+- **读种子必须显式触发**：VM 构造不读种子（只查 `HasSeed` 显示提示），点「刷新/转账」才惰性读入内存；
+  导入种子后立刻把输入框清空。
+
+为什么敢在手机上只留接线：`net10.0` + 纯托管 Ed25519（① 的选型原因之一就是 libsodium 在 iOS 链接不过）
+已经证明可移植；缺的只是**存种子的地方**，那是平台 API，恰好是头应该负责的部分。
+
+验证方式：`--selftest` 不开窗口，进程内起真节点 → 从日志读 treasury 种子 → 走 VM 的
+`ImportWalletCommand` / `TransferCommand` → 查收款余额。它同时证明三件事：链路通、VM 逻辑对、
+**XAML 绑定的属性名没写错**（VM 改了名而 XAML 没改，编译不报错，只会静默不更新——这类 bug 只有跑起来才抓得到）。
+
 ## 5. 运行与验证
 
-- 构建：`dotnet build aether-coin.slnx`（0 警告 0 错误）。
-- 测试：`dotnet test aether-coin.slnx`——10 例钱包 CLI 回归（进程内真节点 + 临时链文件）。
+- 构建：`dotnet build aether-coin.slnx`（0 警告 0 错误）。CI 只构建 Node / Wallet / Verify / Wallet.Desktop
+  四个项目——`slnx` 里的 android / ios 在 Linux runner 上没有 workload，进 CI 只会红。
+- 测试：`dotnet test tests/Aether.Ledger.Wallet.Tests/…`——10 例钱包 CLI 回归（进程内真节点 + 临时链文件）。
 - L2（手工）：起节点 → `wallet info` 读到高度 → `wallet balance <地址>`；验证器对同一链文件退出 0。
+- L2（自动，无 GUI）：`dotnet run --project Aether.Ledger.Wallet.Desktop -c Release -- --selftest` → 6 项断言全绿。
 - 部署：`deploy-ledger` 手动触发 → 服务器停节点、换目录、起节点、RPC 探活。
 
 ## 6. 已知约束与待办
 
 | # | 级别 | 事项 | 现状 |
 |---|---|---|---|
-| 1 | P1 | 服务 env 缺 `AETHER_LEDGER_PRODUCER_SEED` | `ledger-setup-server.ps1` 只写 ADDR/CHAIN_FILE/LOG——**首次部署（新链）能跑，重启后必崩**（节点加载已有链要求该种子）。修法：脚本加 `-ProducerSeed` 参数一并写入 env |
-| 2 | P2 | 无归档/裁剪 | 链文件只增长；本项目规模下可接受，需要时再加 `exportChain` 的分段 |
-| 3 | P3 | 单地址串行出块 | 单 producer、单 nonce 流——够用即可，不是要解决的问题 |
+| 1 | ~~P1~~ 已修（2026-10-28） | 服务 env 缺 `AETHER_LEDGER_PRODUCER_SEED` | `ledger-setup-server.ps1` 原有 bug：只写 ADDR/CHAIN_FILE/LOG ⇒ 首次部署（新链）能跑、重启必崩。已加 `-ProducerSeed` 参数；**不带参重跑会沿用注册表里已有的种子**（不会把配好的种子抹掉）；链文件不存在时明确打印「本次写入会被忽略、首启后必须回写」 |
+| 2 | P1 | 移动端种子安全存储 | 移动 head 现在注入 `MissingSeedStore`——能编译、能连节点、能查余额，但**不能建/导钱包**（界面禁用 + 一行说明）。第一批做 Keychain / Android Keystore |
+| 3 | P2 | 无归档/裁剪 | 链文件只增长；本项目规模下可接受，需要时再加 `exportChain` 的分段 |
+| 4 | P2 | RPC 明文无鉴权 | 钱包 UI 现在直连 `127.0.0.1:17805` 或 SSH 隧道；真要远程/手机连公网节点，必须先上 TLS + 鉴权（README §一 B 的三个前置条件之一） |
+| 5 | P3 | 单地址串行出块 | 单 producer、单 nonce 流——够用即可，不是要解决的问题 |
 
 ## 7. 与文档的关系
 

@@ -60,10 +60,23 @@ jobs:
           --password ${{ secrets.GITHUB_TOKEN }}
           --store-password-in-clear-text
 
-      - name: Build
-        run: dotnet build aether-coin.slnx -c Release
+      # 只构建能在这台 runner 上跑的目标：节点 / 钱包 CLI / 验证器 / 桌面钱包 UI。
+      # android / ios 两个 head 在 slnx 里（IDE 可见），但 Linux runner 没有对应 workload——
+      # 它们由 macOS 本地构建，不进 CI（与 ⑮ 的做法一致：CI 明确指定项目，不 build 整个 slnx）。
+      - name: Build (hosts + desktop wallet UI)
+        run: |
+          dotnet build Aether.Ledger.Node/Aether.Ledger.Node.csproj -c Release
+          dotnet build Aether.Ledger.Wallet/Aether.Ledger.Wallet.csproj -c Release
+          dotnet build Aether.Ledger.Verify/Aether.Ledger.Verify.csproj -c Release
+          dotnet build Aether.Ledger.Wallet.Desktop/Aether.Ledger.Wallet.Desktop.csproj -c Release
         working-directory: aether-coin
 
-      - name: Test
-        run: dotnet test aether-coin.slnx -c Release --no-build
+      - name: Test (wallet CLI regression)
+        run: dotnet test tests/Aether.Ledger.Wallet.Tests/Aether.Ledger.Wallet.Tests.csproj -c Release
+        working-directory: aether-coin
+
+      # 钱包 UI 的无头自检：进程内起真节点 → 从日志读 treasury 种子 → 走 VM 命令建/导钱包 + 转账 → 查余额。
+      # 没有 GUI 也能验「界面绑定的属性名与命令真的通」——与 ⑮ 的 --smoke 同一个思路。
+      - name: Wallet UI selftest (headless)
+        run: dotnet run --project Aether.Ledger.Wallet.Desktop -c Release -- --selftest
         working-directory: aether-coin

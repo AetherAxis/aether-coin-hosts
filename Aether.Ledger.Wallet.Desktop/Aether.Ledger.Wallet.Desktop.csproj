@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- 桌面 head（2026-10-28）：只负责「起窗口 + 决定种子存哪」，UI 与逻辑都在 Aether.Ledger.Wallet.App。
+       selftest 模式 = 不起窗口跑真链路（进程内真节点 → 建/导钱包 → 转账 → 查余额），CI 与本地都能验。 -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Aether.Ledger.Wallet.Desktop</RootNamespace>
+    <AssemblyName>Aether.Ledger.Wallet.Desktop</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Ledger.Wallet.App\Aether.Ledger.Wallet.App.csproj" />
+  </ItemGroup>
+
+</Project>

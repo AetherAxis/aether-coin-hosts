@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- iOS head（2026-10-28 骨架）：TFM + 依赖接线，复用 App 的同一份 View/VM。
+       模拟器构建免签名；真机部署时再注入 codesign 配置（Entitlements.plist 已就位）。
+       ⚠ 种子存储 = MissingSeedStore（待接 Keychain）。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0-ios</TargetFramework>
+    <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Aether.Ledger.Wallet.iOS</RootNamespace>
+    <AssemblyName>AetherLedgerWallet</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.iOS" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Aether.Ledger.Wallet.App\Aether.Ledger.Wallet.App.csproj" />
+  </ItemGroup>
+
+</Project>
