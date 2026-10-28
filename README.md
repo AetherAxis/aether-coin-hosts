@@ -69,7 +69,8 @@ Wallet / 钱包 UI / 交易所桥 / agent 工具   Aether.Ledger.Verify（不需
 | `C:\Aether\ledger-tmp` | 部署中转 |
 
 - 服务名 `AetherLedgerNode`，`sc.exe failure` 崩溃自恢复 `restart/5000`。
-- `:17805` 默认只绑回环（无防火墙规则）；远端访问走 SSH 隧道 `ssh -L 17805:127.0.0.1:17805`。
+- `:17805` **代码默认**只绑回环；远端访问本来要走 SSH 隧道 `ssh -L 17805:127.0.0.1:17805`。
+  ⚠ **但生产服务器实际配的是 `0.0.0.0:17805`（`aether-public-ports.ps1`），公网可达**——2026-10-28 用 socket 实测四个端口 17800/17801/17802/17805 都能从外网连上。桌面钱包/远程 CLI 直连靠的就是这个；**2026-10-28 决定：功能优先，暂不改回环，安全性作为待办**（改回环 = 桌面端必须走隧道）。
 - **依赖仓（① ④）push 不会自动重新部署**——须手动 Run workflow。
 - ⚠ **本仓是 2026-10-27 新拆出的仓**：`CTPSIM_SSH_HOST` / `CTPSIM_SSH_USER` / `CTPSIM_SSH_KEY`（+ 可选 `CTPSIM_SSH_PORT`）要在**本仓** Settings → Secrets 里配（GitHub 改名后 Secrets 随仓保留，无需重配）。服务器端路径/服务名/staging 未变。
 - 首次部署会生成新链，treasury / producer 种子打印进 `node.log`，**必须立刻抄录并离线备份**（种子 = 全部未发行供给 + 出块权）。

@@ -1,6 +1,10 @@
-# ── Aether 虚拟币链·服务器一次性准备脚本（管理员、Windows 服务器上手动跑）──────────────
-# 链节点 = 资产层（独立于交易所存活）：AetherLedgerNode 服务（TCP JSON-RPC 127.0.0.1:17805——只绑回环，
-# 公网零暴露；交易所/钱包 CLI 同机连它，远程机器走 SSH 隧道）。
+﻿# ── Aether 虚拟币链·服务器一次性准备脚本（管理员、Windows 服务器上手动跑）──────────────
+# ⚠ 本文件必须保持 UTF-8 **带 BOM**：PowerShell 5.1 对无 BOM 的 UTF-8 按系统 ANSI/GBK 误读，
+#   中文注释的字节会被当成代码（2026-10-28 实测：无 BOM 时解析器在第 78 行直接报
+#   「表达式或语句中包含意外的标记」，脚本完全跑不起来——灾备/重建时就知道了）。
+# 链节点 = 资产层（独立于交易所存活）：AetherLedgerNode 服务（TCP JSON-RPC，默认 $NodeAddr=127.0.0.1:17805）。
+# ⚠ 生产服务器 2026-10-28 现状：env 里配的是 0.0.0.0:17805（aether-public-ports.ps1），公网可达——
+#   桌面钱包/远程 CLI 直连靠它。功能优先暂不改回环，安全性待办（改回环 = 远端必须走 SSH 隧道）。
 # 此后每次部署 = 本仓 .github/workflows/deploy-ledger.yml（workflow_dispatch 手动触发——2026-10-27 起链三件套
 # 由 ⑧ aether-ctp-hosts 构建、依赖 ① aether-ledger 源码，旧 monorepo workflow 已停用其 push 触发）。
 # 2026-10-27 自 monorepo scripts/ 迁入（服务器已于 10-20 按本脚本准备过——保留用于重建/灾备）。
@@ -54,7 +58,8 @@ else {
 }
 
 # 3) 服务级 env（注册表 REG_MULTI_SZ，幂等重写；改动需重启服务生效）。
-#    17805 只绑回环 ⇒ 无防火墙规则、无公网暴露（远程机器经 SSH 隧道：ssh -L 17805:127.0.0.1:17805）。
+#    本脚本默认 $NodeAddr=127.0.0.1:17805（回环，无防火墙规则，远端走 SSH 隧道）；传 -NodeAddr 0.0.0.0:17805
+#    则公网可直连（生产服务器当前就是这种，见文首说明）。
 #
 #    ⚠ AETHER_LEDGER_PRODUCER_SEED 是「重启能不能活」的唯一开关（2026-10-28 修）：
 #      · 新链只在**首次启动**随机生成 producer 种子，打印进日志；链文件只存公钥，不存种子。
@@ -89,7 +94,10 @@ $nodeEnv = @(
 )
 if ($producer) { $nodeEnv += "AETHER_LEDGER_PRODUCER_SEED=$producer" }
 Set-ItemProperty -Path $nodeKey -Name Environment -Type MultiString -Value $nodeEnv
-Info "链节点 env 已写入注册表（ADDR=$NodeAddr / 链文件 / 日志 / PRODUCER_SEED=$(if ($producer) { '已设' } else { '未设⚠' }））"
+# 注意：$() 子表达式只能用 ASCII 的 ")" 闭合——全角 "）" 不算（2026-10-28：上一版就是这里写错，
+# 导致整个脚本解析失败，灾备时就知道了）。拆成变量，别在字符串里塞 if 表达式。
+$seedState = if ($producer) { '已设' } else { '未设' }
+Info "链节点 env 已写入注册表（ADDR=$NodeAddr / 链文件 / 日志 / PRODUCER_SEED=$seedState）"
 
 # 防火墙：公网直连形态（非回环绑定）自动放行节点端口（幂等）
 if ($NodeAddr -notmatch '^127\.0\.0\.1|^localhost') {
