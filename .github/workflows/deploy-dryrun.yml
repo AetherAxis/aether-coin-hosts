@@ -1,0 +1,85 @@
+name: Deploy Dry-run (no SSH)
+
+# 「拆仓/改名/布局变动 → 部署当天才发现炸」的防线：每次 push 就把 deploy-ledger 的**构建半边**跑一遍。
+#
+# 只做 checkout + Publish + Bundle 三步，**零 SSH、不碰服务器**。dry-run 的 checkout 列表 = deploy-ledger.yml
+# 的 checkout 列表，缺一个兄弟仓这里就 MSB3202 变红——本地 16 仓并排，永远看不出这类断裂。
+# 本仓 2026-10-28 才拆出来，Secrets 不随仓迁移（Deploy Dry-run 也查不到 Secrets，那是 admin 权限），
+# 真部署前请确认本仓 Settings → Secrets 已有 CTPSIM_SSH_HOST / CTPSIM_SSH_USER / CTPSIM_SSH_KEY。
+#
+# ⚠ 与 deploy-ledger.yml 的同名步骤必须逐字一致——改一处同步另一处。断言的是远端脚本的隐含契约：
+#   · ledger-setup-server.ps1 的 BinaryPathName = Aether.Ledger.Node.exe（服务 binPath 写死）
+#   · ledger-remote-deploy.ps1 用 Aether.Ledger.Wallet.exe info 做 RPC 探活（缺了探活必失败）
+#   · tar 根下 node/ + wallet/ + verify/（远端按这三个子目录 robocopy）
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ledger:
+    name: ledger (node + wallet + verify)
+    runs-on: ubuntu-latest
+    steps:
+    # checkout 列表必须与 deploy-ledger.yml 一致（两侧同改）
+    - uses: actions/checkout@v4
+      with:
+        path: aether-coin-hosts
+    - uses: actions/checkout@v4
+      with:
+        repository: AetherAxis/aether-ledger
+        path: aether-ledger
+    - uses: actions/checkout@v4
+      with:
+        repository: AetherAxis/aether-exchange
+        path: aether-exchange
+
+    - uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Publish (node + wallet + verify, self-contained win-x64)
+      run: |
+        dotnet publish Aether.Ledger.Node   -c Release --self-contained true --runtime win-x64 -o ./publish/node
+        dotnet publish Aether.Ledger.Wallet -c Release --self-contained true --runtime win-x64 -o ./publish/wallet
+        dotnet publish Aether.Ledger.Verify -c Release --self-contained true --runtime win-x64 -o ./publish/verify
+      working-directory: aether-coin-hosts
+
+    - name: Assert exe contract (服务 binPath + 远端探活都写死了名字)
+      shell: bash
+      run: |
+        fail=0
+        for f in publish/node/Aether.Ledger.Node.exe publish/wallet/Aether.Ledger.Wallet.exe publish/verify/Aether.Ledger.Verify.exe; do
+          if [ -f "aether-coin-hosts/$f" ]; then echo "OK  $f"; else echo "::error::缺 $f —— 服务 BinaryPathName / 远端 RPC 探活依赖这个名字"; fail=1; fi
+        done
+        exit $fail
+
+    - name: Bundle + assert tar layout (VERSION 带两仓 sha)
+      shell: bash
+      run: |
+        APP_SHA=$(git -C aether-coin-hosts rev-parse --short HEAD)
+        LEDGER_SHA=$(git -C aether-ledger rev-parse --short HEAD)
+        echo "${APP_SHA}+${LEDGER_SHA}" > aether-coin-hosts/publish/node/VERSION
+        cp aether-coin-hosts/publish/node/VERSION aether-coin-hosts/publish/wallet/VERSION
+        cp aether-coin-hosts/publish/node/VERSION aether-coin-hosts/publish/verify/VERSION
+        tar -czf ledger.tar.gz -C aether-coin-hosts/publish .
+        tar -tzf ledger.tar.gz > entries.txt
+
+        fail=0
+        for part in node wallet verify; do
+          if grep -qE "^\./$part/?\$" entries.txt; then echo "OK  tar 根下有 $part/"
+          else echo "::error::tar 根下缺 $part/ —— 远端脚本要求 \$out\\$part 存在"; fail=1; fi
+        done
+
+        ver=$(cat aether-coin-hosts/publish/node/VERSION)
+        case "$ver" in
+          *+*) echo "OK  VERSION=$ver（含两个仓的 sha）" ;;
+          *)   echo "::error::VERSION=$ver 缺 '+'，无法区分「宿主改了」和「账本库改了」"; fail=1 ;;
+        esac
+        exit $fail
