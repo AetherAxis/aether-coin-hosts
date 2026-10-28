@@ -1,6 +1,6 @@
 name: Deploy Ledger Chain
 
-# 虚拟币链部署（⑯ aether-coin，2026-10-27 自 ⑧ 拆出）：
+# 虚拟币链部署（⑯ aether-coin-hosts；2026-10-27 自 ⑧ 拆出，2026-10-28 拆出钱包 UI 后由 aether-coin 改名）：
 #   AetherLedgerNode   = 链节点（:17805，链文件 C:\Aether\ledger-data\ledger.chain）
 #   Aether.Ledger.Wallet = 钱包 CLI（运维发币/充值/提币）
 #   Aether.Ledger.Verify = 独立验证器（链文件 0=有效 / 2=无效）
@@ -10,7 +10,7 @@ name: Deploy Ledger Chain
 #   - 触发仅 workflow_dispatch：① ④ 的 push 不会触发本 workflow（多仓 paths 联动已断）。
 #     **依赖仓有改动后须手动 Run workflow**；与 deploy-ctpsim / deploy-ctp-console 同一纪律
 #   - 服务器端零改动：服务名/部署目录/staging/防火墙沿用 ledger-setup-server.ps1 的既有约定（10-20 已就绪）
-#   - VERSION 记录两个仓的 commit（`<coin>+<ledger>`）——「我的改动到底上没上线」用钱包 info 之外的第二证据
+#   - VERSION 记录两个仓的 commit（`<coin-hosts>+<ledger>`）——「我的改动到底上没上线」用钱包 info 之外的第二证据
 # 风险提示：本 workflow 会**重启链节点**（资产层短暂停服，约数秒；交易所桥轮询自动重连，交易所不用动）。
 # Secrets（在本仓 Settings → Secrets and variables → Actions 配置，与 monorepo 同名同值）：
 #   CTPSIM_SSH_HOST / CTPSIM_SSH_USER（Administrators 组）/ CTPSIM_SSH_KEY / 可选 CTPSIM_SSH_PORT
@@ -32,7 +32,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       with:
-        path: aether-coin
+        path: aether-coin-hosts
     - uses: actions/checkout@v4
       with:
         repository: AetherAxis/aether-ledger
@@ -52,17 +52,17 @@ jobs:
         dotnet publish Aether.Ledger.Node   -c Release --self-contained true --runtime win-x64 -o ./publish/node
         dotnet publish Aether.Ledger.Wallet -c Release --self-contained true --runtime win-x64 -o ./publish/wallet
         dotnet publish Aether.Ledger.Verify -c Release --self-contained true --runtime win-x64 -o ./publish/verify
-      working-directory: aether-coin
+      working-directory: aether-coin-hosts
 
     - name: Bundle (VERSION stamp + tar)
       run: |
         # 版本戳带两个仓的 commit：链节点行为由 ① 决定、宿主由本仓决定——只写一个 sha 追不了「改动上没上线」
-        APP_SHA=$(git -C aether-coin rev-parse --short HEAD)
+        APP_SHA=$(git -C aether-coin-hosts rev-parse --short HEAD)
         LEDGER_SHA=$(git -C aether-ledger rev-parse --short HEAD)
-        echo "${APP_SHA}+${LEDGER_SHA}" > aether-coin/publish/node/VERSION
-        cp aether-coin/publish/node/VERSION aether-coin/publish/wallet/VERSION
-        cp aether-coin/publish/node/VERSION aether-coin/publish/verify/VERSION
-        tar -czf ledger.tar.gz -C aether-coin/publish .
+        echo "${APP_SHA}+${LEDGER_SHA}" > aether-coin-hosts/publish/node/VERSION
+        cp aether-coin-hosts/publish/node/VERSION aether-coin-hosts/publish/wallet/VERSION
+        cp aether-coin-hosts/publish/node/VERSION aether-coin-hosts/publish/verify/VERSION
+        tar -czf ledger.tar.gz -C aether-coin-hosts/publish .
 
     - name: Setup SSH key
       env:
@@ -79,7 +79,7 @@ jobs:
         SSH_PORT: ${{ secrets.CTPSIM_SSH_PORT }}
       run: |
         scp -i ~/.ssh/ledger_key -o StrictHostKeyChecking=accept-new -P "${SSH_PORT:-22}" \
-          ledger.tar.gz aether-coin/scripts/ledger-remote-deploy.ps1 "${SSH_USER}@${SSH_HOST}:${LEDGER_STAGING}/"
+          ledger.tar.gz aether-coin-hosts/scripts/ledger-remote-deploy.ps1 "${SSH_USER}@${SSH_HOST}:${LEDGER_STAGING}/"
 
     - name: Deploy (stop -> swap three dirs -> start -> RPC probe)
       env:

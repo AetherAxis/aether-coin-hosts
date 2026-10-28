@@ -2,24 +2,14 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <!-- 本仓的还原图只到 ① aether-ledger（BouncyCastle）+ ④ Aether.Exchange.Rpc（零包引用），
-         没有 ⑥ Lean 那条 2018 老包的传递链——所以不需要 ⑧ 那份传递钉。 -->
+         没有 ⑥ Lean 那条 2018 老包的传递链——所以不需要 ⑧ 那份传递钉。
+         钱包 UI 的 Avalonia 包随 UI 拆出迁至 ⑰ aether-coin-desktop（2026-10-28）。 -->
   </PropertyGroup>
   <ItemGroup>
     <!-- 节点宿主（AddWindowsService 需要 Hosting.WindowsServices） -->
     <PackageVersion Include="Microsoft.Extensions.Hosting" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Hosting.WindowsServices" Version="10.0.13" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="10.0.13" />
-
-    <!-- 钱包 UI（2026-10-28）：Avalonia 12.1.4 一条线，与 ⑮ aether-ai-app 同版本；
-         移动 head（Android/iOS）与桌面 head 共用同一份 View/VM。 -->
-    <PackageVersion Include="Avalonia" Version="12.1.4" />
-    <PackageVersion Include="Avalonia.Themes.Fluent" Version="12.1.4" />
-    <PackageVersion Include="Avalonia.Desktop" Version="12.1.4" />
-    <PackageVersion Include="Avalonia.Android" Version="12.1.4" />
-    <PackageVersion Include="Avalonia.iOS" Version="12.1.4" />
-    <PackageVersion Include="Avalonia.Fonts.Inter" Version="12.1.4" />
-    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.2" />
-    <PackageVersion Include="Xamarin.AndroidX.Core.SplashScreen" Version="1.0.1.15" />
 
     <!-- 测试 -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />

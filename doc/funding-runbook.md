@@ -16,7 +16,7 @@ treasury 国库（210 亿 AQ——AQ 唯一源头）
    │ ② deposit：转 AQ 到 custody + memo = 交易所账户（充值钱包签名）
    ▼
 custody 托管地址（种子 = 交易所托管责任）
-   │ 桥 500ms 轮询 + LedgerSpotLink 1s 对账（自动；1~2 秒到账）
+   │ 桥 500ms 轮询 + LedgerCashRail 1s 对账（自动；1~2 秒到账）
    ▼
 交易所账户场内现金（1 AQ = 1 现金；提币 withdraw 反向，custody 签名出金）
 ```
@@ -33,7 +33,7 @@ custody 托管地址（种子 = 交易所托管责任）
 
 **钱包 CLI**（`new` / `info` / `balance` / `transfer` / `deposit` / `withdraw`）：
 
-- 服务器上 `C:\Aether\LedgerWallet\Aether.Ledger.Wallet.exe`（随链三件套由**本仓** `deploy-ledger.yml` 部署——源 = 本仓 `Aether.Ledger.Wallet` + ① 账本 + ④ RPC）；本地 `dotnet run --project ~/Desktop/AetherAxis/aether-coin/Aether.Ledger.Wallet -- <命令>`。下文简写 `wallet`。
+- 服务器上 `C:\Aether\LedgerWallet\Aether.Ledger.Wallet.exe`（随链三件套由**本仓** `deploy-ledger.yml` 部署——源 = 本仓 `Aether.Ledger.Wallet` + ① 账本 + ④ RPC）；本地 `dotnet run --project ~/Desktop/AetherAxis/aether-coin-hosts/Aether.Ledger.Wallet -- <命令>`。下文简写 `wallet`。
 - 端点：链侧 `--node`（默认 127.0.0.1:17805）；提币 `--exchange`（默认 127.0.0.1:17800）。服务器上直跑用默认值即可；本地远程操作加 `--node <服务器IP>:17805`。
 - ⚠ **`transfer` / `deposit` 的 `--asset` 缺省是 coin（通道已退役）——AQ 操作必须显式 `--asset quote`**（`withdraw` 的缺省已是 quote）。
 
@@ -72,12 +72,12 @@ wallet withdraw --user <userId> --password <登录密码> --to <钱包地址> --
 
 ```bash
 # 服务链（交易所带 custody seed 才接桥；seed = 任意 64 位 hex 随机，离线备份）
-dotnet run --project aether-coin/Aether.Ledger.Node     # 新链种子打印在日志——当场抄录 treasury
+dotnet run --project aether-coin-hosts/Aether.Ledger.Node     # 新链种子打印在日志——当场抄录 treasury
 AETHER_LEDGER_CUSTODY_SEED=<hex> dotnet run --project aether-ctp-hosts/Aether.Exchange.Host
 dotnet run --project aether-ctp-hosts/Aether.CtpFront.Host
 
 # 充值（本地 CLI = 本仓 Aether.Ledger.Wallet）
-wallet=~/Desktop/AetherAxis/aether-coin/Aether.Ledger.Wallet
+wallet=~/Desktop/AetherAxis/aether-coin-hosts/Aether.Ledger.Wallet
 dotnet run --project $wallet -- balance --seed <custody种子hex>       # 输出 custody 地址
 dotnet run --project $wallet -- transfer --seed @treasury.seed --to <钱包地址> --amount 1000000 --asset quote
 dotnet run --project $wallet -- deposit --seed @运营钱包.seed --custody <custody地址> --account bot01 --amount 1000000 --asset quote

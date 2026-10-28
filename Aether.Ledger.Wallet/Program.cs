@@ -1,7 +1,7 @@
 using Aether.Ledger.Wallet;
 
 // ── 链上钱包 CLI（自 monorepo apps/LedgerWallet 迁入，2026-10-27）──────────────────────
-// 用法：dotnet run --project aether-coin/Aether.Ledger.Wallet -- <命令> [参数]
+// 用法：dotnet run --project aether-coin-hosts/Aether.Ledger.Wallet -- <命令> [参数]
 //   new [--out <file>]                    生成钱包：打印种子（hex 64 字符）+ 地址；--out 存种子文件
 //   info    [--node <addr>]               链信息：高度 / chainId / 总供给
 //   balance <address> [--node <addr>]     查任意地址余额（也可 --seed 看自己）

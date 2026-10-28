@@ -1,0 +1,10 @@
+<Solution>
+  <!-- 虚拟币线的宿主仓（2026-10-28 钱包 UI 拆出至 ⑰ aether-coin-desktop 后收窄）：
+       一个服务端（节点）+ 一个客户端（钱包 CLI）+ 一个离线验证器。
+       引擎在 ① aether-ledger（库），本仓只做组合与发布——和 ⑧ aether-ctp-hosts 同一套「只引不产」纪律，
+       区别是本仓只装虚拟币这一条线的宿主。 -->
+  <Project Path="Aether.Ledger.Node/Aether.Ledger.Node.csproj" />
+  <Project Path="Aether.Ledger.Wallet/Aether.Ledger.Wallet.csproj" />
+  <Project Path="Aether.Ledger.Verify/Aether.Ledger.Verify.csproj" />
+  <Project Path="tests/Aether.Ledger.Wallet.Tests/Aether.Ledger.Wallet.Tests.csproj" />
+</Solution>
