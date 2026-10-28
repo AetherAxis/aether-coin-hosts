@@ -42,7 +42,8 @@ Wallet / 钱包 UI / 交易所桥 / agent 工具   Aether.Ledger.Verify（不需
 # ② 本仓 Settings → Secrets and variables → Actions（新仓，必须在「本仓」配）：
 #    CTPSIM_SSH_HOST / CTPSIM_SSH_USER / CTPSIM_SSH_KEY（+ 可选 CTPSIM_SSH_PORT）
 
-# ③ 触发部署：Actions → deploy-ledger → Run workflow（workflow_dispatch）
+# ③ 部署（**本机直传，推荐**）：.\scripts\deploy-from-local.sh   # 需 bash；或 CI：Actions → deploy-ledger（上传极慢，见下）
+#    2026-10-28 实测 runner→服务器 54MB 需 >23 分钟，本机 34s——CI 那条路暂作构建契约
 #    三件套 win-x64 自包含发布 → SSH 到服务器：停服务 → 换目录 → 起服务 → RPC 探活
 
 # ④ 首启后立刻抄种子（新链只有这一次机会）

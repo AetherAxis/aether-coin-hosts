@@ -162,6 +162,13 @@ if ($nodeAddr) {
     if ($probeHost -eq '0.0.0.0') { $probeHost = '127.0.0.1' }
     if ($parts.Count -ge 2) { [int]::TryParse($parts[-1], [ref]$probePort) | Out-Null }
 }
+# 诊断输出不许带密钥：SEED/KEY/PASSWORD/TOKEN/SECRET 类的值一律打码（env 里有 producer 种子和
+# custody 种子——写进 CI 日志等于把资产层钥匙留档）。
+function Hide-Secret([string]$line) {
+    if ($line -match '^(?<k>[^=]*(SEED|KEY|PASSWORD|TOKEN|SECRET)[^=]*)=.*$') { return "$($matches['k'])=<已隐藏>" }
+    return $line
+}
+
 function Test-Port([string]$host2, [int]$port2) {
     try {
         $tcp = New-Object Net.Sockets.TcpClient
@@ -171,16 +178,21 @@ function Test-Port([string]$host2, [int]$port2) {
         return $ok
     } catch { return $false }
 }
-$tcpOk = Test-Port $probeHost $probePort
-if (-not $tcpOk) {
+#    ③ 服务 Running ≠ 端口已 bind：启动后要先全量重放链文件才 bind（2026-10-28 实测：27238 块约 10s，
+#      且随链增长只会更久）。单次探针会把「还在重放」误判成「端口不可连」——必须退避重试。
+$tcpOk = $false
+$probeDeadline = [DateTime]::Now.AddSeconds(90)
+while ([DateTime]::Now -lt $probeDeadline) {
+    if (Test-Port $probeHost $probePort) { $tcpOk = $true; break }
     # 回环兜底：env 解析出的 host 连不上时再试 127.0.0.1（节点绑 Any 而 env 形态解析异常等边缘）
-    if (Test-Port '127.0.0.1' $probePort) { $tcpOk = $true; $probeHost = '127.0.0.1' }
+    if (Test-Port '127.0.0.1' $probePort) { $tcpOk = $true; $probeHost = '127.0.0.1'; break }
+    Start-Sleep -Milliseconds 1000
 }
 if (-not $tcpOk) {
     Write-Host "[LEDGER-DEPLOY] ── 探针失败诊断（$probeHost`:$probePort 不可连）──"
     Get-Service -Name $NodeService | Format-Table Name,Status | Out-String | ForEach-Object { Write-Host $_.TrimEnd() }
-    Write-Host "[LEDGER-DEPLOY] 服务 env："
-    foreach ($kv in $nodeEnv) { Write-Host "    $kv" }
+    Write-Host "[LEDGER-DEPLOY] 服务 env（密钥类已打码）："
+    foreach ($kv in $nodeEnv) { Write-Host "    $(Hide-Secret $kv)" }
     Write-Host "[LEDGER-DEPLOY] netstat（17805）："
     netstat -ano | Select-String ':17805' | ForEach-Object { Write-Host "    $($_.Line.Trim())" }
     $log = Join-Path $DataDir 'node.log'

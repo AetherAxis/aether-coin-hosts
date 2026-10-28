@@ -1,5 +1,9 @@
 name: Deploy Ledger Chain
 
+# ⚠ 上线请用 scripts/deploy-from-local.sh（本机直传），本 workflow 暂只作构建契约：
+#   2026-10-28 实测 GitHub runner → 服务器上传 54MB 跑 23 分钟仍未完（被硬超时杀掉），本机同一条 34s。
+#   workflow 逻辑本身没坏——链路是瓶颈；带宽恢复后可继续用。
+
 # 虚拟币链部署（⑯ aether-coin-hosts；2026-10-27 自 ⑧ 拆出，2026-10-28 拆出钱包 UI 后由 aether-coin 改名）：
 #   AetherLedgerNode   = 链节点（:17805，链文件 C:\Aether\ledger-data\ledger.chain）
 #   Aether.Ledger.Wallet = 钱包 CLI（运维发币/充值/提币）
