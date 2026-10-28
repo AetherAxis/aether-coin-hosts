@@ -2,7 +2,7 @@
 # 由 .github/workflows/deploy-ledger.yml 经 SSH 调起：
 #   powershell -NoProfile -ExecutionPolicy Bypass -File C:/Aether/ledger-tmp/ledger-remote-deploy.ps1
 # 前提（一次性）：已以管理员运行 scripts/ledger-setup-server.ps1（AetherLedgerNode 服务 + env 注册表）。
-# 2026-10-27：自 monorepo scripts/ 原样迁入 ⑧ aether-apps（链三件套 = 本仓 Node + Wallet + Verify）。
+# 2026-10-27：自 monorepo scripts/ 原样迁入 ⑧ aether-ctp-hosts（链三件套 = 本仓 Node + Wallet + Verify）。
 #   脚本本身零改动——服务器侧目录/staging/服务名沿用 10-20 上线的既有约定（切换部署只换「谁来构建」）。
 # 流程：preflight → 干净解包 → 停节点 → robocopy /MIR 三目录 → 起节点（等 Running）→ RPC 探针。
 # 链数据（ledger.chain + 节点日志）在 DataDir——三部署目录之外，重部署不动链。

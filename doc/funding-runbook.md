@@ -72,8 +72,8 @@ wallet withdraw --user <userId> --password <登录密码> --to <钱包地址> --
 ```bash
 # 服务链（交易所带 custody seed 才接桥；seed = 任意 64 位 hex 随机，离线备份）
 dotnet run --project aether-coin/Aether.Ledger.Node     # 新链种子打印在日志——当场抄录 treasury
-AETHER_LEDGER_CUSTODY_SEED=<hex> dotnet run --project aether-apps/Aether.Exchange.Host
-dotnet run --project aether-apps/Aether.CtpFront.Host
+AETHER_LEDGER_CUSTODY_SEED=<hex> dotnet run --project aether-ctp-hosts/Aether.Exchange.Host
+dotnet run --project aether-ctp-hosts/Aether.CtpFront.Host
 
 # 充值（本地 CLI = 本仓 Aether.Ledger.Wallet）
 wallet=~/Desktop/AetherAxis/aether-coin/Aether.Ledger.Wallet
@@ -83,7 +83,7 @@ dotnet run --project $wallet -- deposit --seed @运营钱包.seed --custody <cus
 
 # 实例目录跑 bot（现金已就位，Lean 风控不再全单 Invalid）
 cd <实例目录>
-dotnet run --project ~/Desktop/AetherAxis/aether-apps/Aether.CtpConsole -- --profile bot01 --run-strategy market-maker zx001 --real --max-volume 1
+dotnet run --project ~/Desktop/AetherAxis/aether-ctp-hosts/Aether.CtpConsole -- --profile bot01 --run-strategy market-maker zx001 --real --max-volume 1
 ```
 
 ## 5. 语义速查（重启 / 异常）

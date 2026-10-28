@@ -2,7 +2,7 @@
 # 链节点 = 资产层（独立于交易所存活）：AetherLedgerNode 服务（TCP JSON-RPC 127.0.0.1:17805——只绑回环，
 # 公网零暴露；交易所/钱包 CLI 同机连它，远程机器走 SSH 隧道）。
 # 此后每次部署 = 本仓 .github/workflows/deploy-ledger.yml（workflow_dispatch 手动触发——2026-10-27 起链三件套
-# 由 ⑧ aether-apps 构建、依赖 ① aether-ledger 源码，旧 monorepo workflow 已停用其 push 触发）。
+# 由 ⑧ aether-ctp-hosts 构建、依赖 ① aether-ledger 源码，旧 monorepo workflow 已停用其 push 触发）。
 # 2026-10-27 自 monorepo scripts/ 迁入（服务器已于 10-20 按本脚本准备过——保留用于重建/灾备）。
 # 部署目录三件套：LedgerNode（节点）/ LedgerWallet（钱包 CLI——运维发币/用户提币）/ LedgerVerify（独立验证器）。
 # 幂等：重复运行安全。兼容 Windows PowerShell 5.1。与 CTP 仿真栈共用同一台服务器与 SSH 通道（同 Secrets）。
